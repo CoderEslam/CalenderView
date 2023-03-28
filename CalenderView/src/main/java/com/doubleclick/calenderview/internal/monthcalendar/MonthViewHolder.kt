@@ -1,0 +1,48 @@
+package com.doubleclick.calenderview.internal.monthcalendar
+
+import android.view.View
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import com.doubleclick.calenderview.core.CalendarDay
+import com.doubleclick.calenderview.core.CalendarMonth
+import com.doubleclick.calenderview.MonthHeaderFooterBinder
+import com.doubleclick.calenderview.ViewContainer
+import com.doubleclick.calenderview.internal.WeekHolder
+
+internal class MonthViewHolder constructor(
+    rootLayout: ViewGroup,
+    private val headerView: View?,
+    private val footerView: View?,
+    private val weekHolders: List<WeekHolder<CalendarDay>>,
+    private var monthHeaderBinder: MonthHeaderFooterBinder<ViewContainer>?,
+    private var monthFooterBinder: MonthHeaderFooterBinder<ViewContainer>?,
+) : RecyclerView.ViewHolder(rootLayout) {
+
+    private var headerContainer: ViewContainer? = null
+    private var footerContainer: ViewContainer? = null
+
+    lateinit var month: CalendarMonth
+
+    fun bindMonth(month: CalendarMonth) {
+        this.month = month
+        headerView?.let { view ->
+            val headerContainer = headerContainer ?: monthHeaderBinder!!.create(view).also {
+                headerContainer = it
+            }
+            monthHeaderBinder?.bind(headerContainer, month)
+        }
+        weekHolders.forEachIndexed { index, week ->
+            week.bindWeekView(month.weekDays.getOrNull(index).orEmpty())
+        }
+        footerView?.let { view ->
+            val footerContainer = footerContainer ?: monthFooterBinder!!.create(view).also {
+                footerContainer = it
+            }
+            monthFooterBinder?.bind(footerContainer, month)
+        }
+    }
+
+    fun reloadDay(day: CalendarDay) {
+        weekHolders.firstOrNull { it.reloadDay(day) }
+    }
+}
